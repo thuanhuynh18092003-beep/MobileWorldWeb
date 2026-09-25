@@ -1,0 +1,3 @@
+@model string
+@{ ViewData["Title"] = "Đặt hàng thành công"; }
+<div class="container page-content"><div class="success-panel"><span class="success-icon">✓</span><span class="section-kicker">ĐẶT HÀNG THÀNH CÔNG</span><h1>Cảm ơn bạn đã tin tưởng!</h1><p>Đơn hàng <strong>@Model</strong> đã được ghi nhận. Nhân viên sẽ sớm liên hệ để xác nhận và hỗ trợ giao hàng.</p><div class="success-actions"><a class="btn btn-primary" asp-controller="Products" asp-action="Index">Tiếp tục khám phá ↗</a>@if(User.Identity?.IsAuthenticated == true){<a class="btn btn-outline" asp-controller="Account" asp-action="Orders">Xem đơn hàng</a>}</div></div></div>

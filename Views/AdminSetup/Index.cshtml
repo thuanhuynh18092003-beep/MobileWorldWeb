@@ -1,0 +1,25 @@
+@model AdminSetupViewModel
+@{ ViewData["Title"] = "Thiết lập quản trị"; }
+<div class="container auth-wrap">
+    <div class="auth-art">
+        <span class="section-kicker">THIẾT LẬP LẦN ĐẦU</span>
+        <h1>Quản lý cửa hàng<br/><em>theo cách của bạn.</em></h1>
+        <p>Tạo tài khoản quản trị để thêm sản phẩm, theo dõi đơn hàng và cập nhật trạng thái bán hàng.</p>
+        <span class="auth-star">✦</span>
+    </div>
+    <div class="auth-panel">
+        <span class="section-kicker">MOBILEWORLD ADMIN</span>
+        <h2>Tạo tài khoản Admin</h2>
+        <p>Chỉ thiết lập được một lần trên máy phát triển, trước khi có Admin.</p>
+        <form asp-action="Index" method="post">
+            <div asp-validation-summary="ModelOnly" class="validation"></div>
+            <div class="field"><label asp-for="FullName">Họ và tên</label><input asp-for="FullName" autocomplete="name" placeholder="Tên người quản trị" /><span asp-validation-for="FullName" class="validation"></span></div>
+            <div class="field"><label asp-for="Email">Email</label><input asp-for="Email" autocomplete="email" placeholder="admin@example.com" /><span asp-validation-for="Email" class="validation"></span></div>
+            <div class="field"><label asp-for="Password">Mật khẩu</label><input asp-for="Password" type="password" autocomplete="new-password" placeholder="Ít nhất 8 ký tự" /><span asp-validation-for="Password" class="validation"></span></div>
+            <div class="field"><label asp-for="ConfirmPassword">Xác nhận mật khẩu</label><input asp-for="ConfirmPassword" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu" /><span asp-validation-for="ConfirmPassword" class="validation"></span></div>
+            <button class="btn btn-primary full-width" type="submit">Thiết lập Admin ↗</button>
+        </form>
+        <div class="auth-footer">Đã có tài khoản khách hàng? Nhập đúng email và mật khẩu của tài khoản đó để dùng làm Admin.</div>
+    </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

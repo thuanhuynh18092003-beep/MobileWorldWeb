@@ -1,0 +1,47 @@
+@inject ShopMobileWorld.Services.CartService Cart
+@inject ShopMobileWorld.Data.ShopDbContext Db
+@inject IWebHostEnvironment Environment
+@using Microsoft.EntityFrameworkCore
+@{ var showAdminSetup = ShopMobileWorld.Services.AdminSetupAccess.IsAllowed(Context, Environment) && !await Db.Users.AnyAsync(x => x.Role == "Admin"); }
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] ?? "Điện thoại chính hãng") | ShopMobileWorld</title>
+    <meta name="description" content="ShopMobileWorld - điện thoại chính hãng, giá tốt, giao hàng nhanh và bảo hành uy tín." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="topbar"><div class="container topbar-inner"><span>Miễn phí vận chuyển cho đơn hàng từ 5.000.000đ</span><span>Hỗ trợ khách hàng: <strong>Liên hệ cửa hàng</strong></span></div></div>
+    <header class="site-header">
+        <div class="container header-main">
+            <a class="brand-logo" asp-controller="Home" asp-action="Index" aria-label="ShopMobileWorld - Trang chủ"><span class="logo-mark">✦</span><span>mobile<span class="logo-light">world</span><small>TECH FOR EVERYONE</small></span></a>
+            <form class="header-search" asp-controller="Products" asp-action="Index" method="get"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg><input type="search" name="search" placeholder="Bạn đang tìm điện thoại nào?" value="@Context.Request.Query["search"]" /><button type="submit">Tìm kiếm</button></form>
+            <nav class="header-actions" aria-label="Tài khoản và giỏ hàng">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="account-menu"><a asp-controller="Account" asp-action="Orders" class="header-action"><span class="action-icon">♙</span><span><small>Xin chào,</small><strong>@User.Identity.Name</strong></span></a><div class="account-dropdown"><a asp-controller="Account" asp-action="Orders">Đơn hàng của tôi</a>@if(User.IsInRole("Admin")){<a asp-controller="Admin" asp-action="Index">Quản trị</a>}<form asp-controller="Account" asp-action="Logout" method="post"><button type="submit">Đăng xuất</button></form></div></div>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="header-action"><span class="action-icon">♙</span><span><small>Tài khoản</small><strong>Đăng nhập</strong></span></a>
+                }
+                <a asp-controller="Cart" asp-action="Index" class="header-action cart-link"><span class="action-icon">♧</span><span><small>Giỏ hàng</small><strong>@Cart.Count sản phẩm</strong></span>@if(Cart.Count > 0){<em>@Cart.Count</em>}</a>
+            </nav>
+        </div>
+        <div class="header-nav"><div class="container nav-inner"><a asp-controller="Home" asp-action="Index">Trang chủ</a>@if (User.IsInRole("Admin")) { <a asp-controller="Admin" asp-action="Index">Quản trị</a> } else if (showAdminSetup) { <a asp-controller="AdminSetup" asp-action="Index" class="admin-setup-link">Thiết lập Admin</a> }<a asp-controller="Products" asp-action="Index">Tất cả điện thoại</a><a asp-controller="Products" asp-action="Index" asp-route-brand="Apple">iPhone</a><a asp-controller="Products" asp-action="Index" asp-route-brand="Samsung">Samsung</a><a asp-controller="Products" asp-action="Index" asp-route-brand="Xiaomi">Xiaomi</a><a asp-controller="Products" asp-action="Index" asp-route-brand="OPPO">OPPO</a><span class="nav-promise">✓ Hàng chính hãng 100%</span></div></div>
+    </header>
+    <main>
+        @if (TempData["Success"] is string success) { <div class="container notice success">@success</div> }
+        @if (TempData["Error"] is string error) { <div class="container notice error">@error</div> }
+        @RenderBody()
+    </main>
+    <footer class="site-footer"><div class="container footer-grid"><div><a class="brand-logo footer-logo" asp-controller="Home" asp-action="Index"><span class="logo-mark">✦</span><span>mobile<span class="logo-light">world</span><small>TECH FOR EVERYONE</small></span></a><p>Điểm đến dành cho người yêu công nghệ. Chọn chiếc điện thoại phù hợp với phong cách của bạn.</p></div><div><h4>Khám phá</h4><a asp-controller="Products" asp-action="Index">Điện thoại</a><a asp-controller="Products" asp-action="Index" asp-route-brand="Apple">iPhone</a><a asp-controller="Products" asp-action="Index" asp-route-brand="Samsung">Samsung</a></div><div><h4>Hỗ trợ</h4><span>Liên hệ cửa hàng để được tư vấn</span><span>Hỗ trợ trong quá trình mua sắm</span></div><div><h4>Cam kết của chúng tôi</h4><span>✓ Hàng chính hãng</span><span>✓ Giao hàng nhanh</span><span>✓ Bảo hành minh bạch</span></div></div><div class="container footer-bottom">© @DateTime.Now.Year ShopMobileWorld. Thiết kế cho trải nghiệm mua sắm tốt hơn.</div></footer>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

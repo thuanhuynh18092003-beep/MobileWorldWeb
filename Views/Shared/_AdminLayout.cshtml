@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] ?? "Quản trị sản phẩm") | ShopMobileWorld Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+    <div class="admin-shell">
+        <aside class="admin-sidebar">
+            <a class="brand-logo admin-brand" asp-controller="Admin" asp-action="Index"><span class="logo-mark">✦</span><span>mobile<span class="logo-light">world</span><small>ADMIN PANEL</small></span></a>
+            <div class="admin-sidebar-label">QUẢN LÝ CỬA HÀNG</div>
+            <nav aria-label="Menu quản trị">
+                <a asp-controller="Admin" asp-action="Index" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")"><span>▦</span> Tổng quan sản phẩm</a>
+                <a asp-controller="Admin" asp-action="Products" class="@(ViewContext.RouteData.Values["action"]?.ToString() is "Products" or "Edit" or "Create" ? "active" : "")"><span>▤</span> Sản phẩm & tồn kho</a>
+                <a asp-controller="Admin" asp-action="Orders" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Orders" ? "active" : "")"><span>▣</span> Trạng thái đơn hàng</a>
+                <a asp-controller="Admin" asp-action="Create"><span>＋</span> Thêm sản phẩm</a>
+            </nav>
+            <div class="admin-sidebar-note"><strong>Không gian quản trị</strong><p>Quản lý sản phẩm, tồn kho và trạng thái đơn hàng.</p></div>
+        </aside>
+        <div class="admin-workspace">
+            <header class="admin-topbar"><div><span class="admin-topbar-kicker">SHOPMOBILEWORLD</span><strong>@(ViewData["Title"] ?? "Quản trị")</strong></div><div class="admin-topbar-user"><span>Xin chào, <b>@User.Identity?.Name</b></span><form asp-controller="Account" asp-action="Logout" method="post"><button type="submit">Đăng xuất ↗</button></form></div></header>
+            <main class="admin-content">@RenderBody()</main>
+        </div>
+    </div>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

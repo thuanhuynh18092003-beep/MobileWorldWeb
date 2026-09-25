@@ -1,0 +1,19 @@
+@model List<Order>
+@{ ViewData["Title"] = "Trạng thái đơn hàng"; }
+<div class="container page-content admin-page">
+    <div class="page-heading"><span class="section-kicker">QUẢN TRỊ CỬA HÀNG</span><h1>Trạng thái đơn hàng<span class="orange-dot">.</span></h1><p>Cập nhật tiến độ xử lý và giao hàng.</p></div>
+    <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th></tr></thead><tbody>
+        @foreach (var order in Model)
+        {
+            var allowed = OrderStatus.AvailableFrom(order.Status);
+            <tr>
+                <td><strong>@order.Code</strong><small>@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small></td>
+                <td>@order.CustomerName<small>@order.Phone</small><small>@order.Address</small></td>
+                <td>@foreach (var item in order.Items) { <small>@item.ProductName × @item.Quantity</small> }</td>
+                <td>@order.Total.ToString("N0")₫</td>
+                <td>@(order.PaymentMethod == "COD" ? "Khi nhận hàng" : "Chuyển khoản")</td>
+                <td><form asp-action="UpdateStatus" asp-route-id="@order.Id" method="post" class="status-form"><select name="status" disabled="@(allowed.Count <= 1)">@foreach (var status in allowed) { <option value="@status" selected="@(order.Status == status)">@status</option> }</select><button type="submit" disabled="@(allowed.Count <= 1)">Lưu</button></form></td>
+            </tr>
+        }
+    </tbody></table></div>
+</div>

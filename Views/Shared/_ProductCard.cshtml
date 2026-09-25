@@ -1,0 +1,8 @@
+@model Product
+<article class="product-card">
+    <a asp-controller="Products" asp-action="Details" asp-route-slug="@Model.Slug" class="product-visual" style="--phone-color:@Model.Color">
+        @if (Model.OldPrice.HasValue && Model.OldPrice > Model.Price) { <span class="discount-badge">-@Math.Round((Model.OldPrice.Value - Model.Price) / Model.OldPrice.Value * 100)%</span> }
+        <span class="phone-art"><span class="phone-lens l1"></span><span class="phone-lens l2"></span><span class="phone-lens l3"></span><span class="phone-flash"></span><span class="phone-symbol">✦</span></span>
+    </a>
+    <div class="product-info"><span class="eyebrow">@Model.Brand · @Model.Storage</span><h3><a asp-controller="Products" asp-action="Details" asp-route-slug="@Model.Slug">@Model.Name</a></h3><div class="product-meta">@Model.Screen</div><div class="price-line"><strong>@Model.Price.ToString("N0")₫</strong>@if(Model.OldPrice.HasValue){<del>@Model.OldPrice.Value.ToString("N0")₫</del>}</div><div class="product-bottom"><span class="rating"><b>✓</b> <small>Bảo hành 12 tháng</small></span><form asp-controller="Cart" asp-action="Add" method="post"><input type="hidden" name="productId" value="@Model.Id" /><input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" /><button type="submit" class="quick-add" aria-label="Thêm @Model.Name vào giỏ hàng" @(Model.Stock == 0 ? "disabled" : null)>+</button></form></div></div>
+</article>

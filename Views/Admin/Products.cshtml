@@ -1,0 +1,18 @@
+@model List<Product>
+@{ ViewData["Title"] = "Sản phẩm và tồn kho"; }
+<div class="container page-content admin-page">
+    <div class="section-heading"><div><span class="section-kicker">QUẢN TRỊ CỬA HÀNG</span><h1>Sản phẩm & tồn kho<span class="orange-dot">.</span></h1><p>Cập nhật số lượng và trạng thái bán của từng sản phẩm.</p></div><a class="btn btn-primary" asp-action="Create">+ Thêm sản phẩm</a></div>
+    <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Sản phẩm</th><th>Thương hiệu</th><th>Giá</th><th>Tồn kho</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td><strong>@product.Name</strong><small>@product.Storage</small></td>
+                <td>@product.Brand</td>
+                <td>@product.Price.ToString("N0")₫</td>
+                <td><form asp-action="UpdateStock" asp-route-id="@product.Id" method="post" class="admin-stock-form"><input type="number" name="stock" value="@product.Stock" min="0" max="100000" aria-label="Tồn kho @product.Name" /><button type="submit">Lưu</button></form></td>
+                <td><span class="product-state @(product.IsActive ? product.Stock == 0 ? "sold-out" : "" : "hidden")">@(product.IsActive ? product.Stock == 0 ? "Hết hàng" : "Đang bán" : "Đã ẩn")</span></td>
+                <td><div class="table-actions"><a asp-action="Edit" asp-route-id="@product.Id">Sửa</a><form asp-action="Toggle" asp-route-id="@product.Id" method="post"><button type="submit">@(product.IsActive ? "Ẩn" : "Hiện")</button></form></div></td>
+            </tr>
+        }
+    </tbody></table></div>
+</div>
