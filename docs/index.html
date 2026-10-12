@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0B0B0E">
+  <meta name="description" content="ShopMobileWorld — demo tương tác website bán điện thoại ASP.NET Core MVC và SQL Server. Trải nghiệm chọn biến thể, đặt đơn mẫu và quản trị.">
+  <title>ShopMobileWorld · Burgundy Galaxy</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/demo.css">
+  <script type="importmap">{"imports":{"three":"./assets/three/three.module.js","three/addons/":"./assets/three/addons/"}}</script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Đến nội dung</a>
+  <canvas id="space-bg" aria-hidden="true"></canvas>
+  <div class="space-overlay" aria-hidden="true"></div>
+  <div class="demo-bar"><span><i></i> DEMO TƯƠNG TÁC <span class="demo-bar-detail">· Dữ liệu mẫu, không giao dịch thật</span></span><a href="#project">Về dự án ↗</a></div>
+  <header class="header"><div class="header-inner">
+    <a class="brand" href="#home" aria-label="MobileWorld trang chủ"><span class="brand-symbol">✦</span><span>mobile<span class="brand-light">world</span><small>TECH FOR EVERYONE</small></span></a>
+    <nav aria-label="Điều hướng chính"><a href="#shop">Điện thoại</a><a href="#orders">Đơn của tôi</a><a href="#admin" class="admin-link">Khám phá Admin <span>↗</span></a></nav>
+    <div class="header-actions"><button id="glow-toggle" class="icon-button" aria-label="Tắt ánh sáng Burgundy" aria-pressed="true">✦</button><a href="#cart" class="cart-link" aria-label="Giỏ hàng">Giỏ hàng <b id="cart-count">0</b></a></div>
+  </div></header>
+  <section id="home-hero" class="hero container" aria-labelledby="hero-title">
+    <div class="hero-copy"><span class="eyebrow"><i></i> BURGUNDY GALAXY COLLECTION</span><h1 id="hero-title">Công nghệ.<br>Trong một<br><em>vũ trụ mới.</em></h1><p>Thiết kế tinh tế. Trải nghiệm đầy cảm hứng.<br>Khám phá chiếc điện thoại mang dấu ấn của bạn.</p><div class="hero-actions"><a class="button primary" href="#product/p1">Khám phá iPhone 18 <span>↗</span></a><a class="quiet-link" href="#shop">Xem bộ sưu tập →</a></div><div class="hero-meta"><span><b>03</b> Sắc màu</span><span><b>360°</b> Trải nghiệm 3D</span><span><b>MVC</b> & SQL Server</span></div></div>
+    <div class="hero-scene"><div class="orbital-ring"></div><img class="hero-fallback" src="assets/images/burgundy.webp" alt="Điện thoại Burgundy minh họa" width="600" height="600"><canvas id="hero-device-canvas" aria-label="Mô hình điện thoại 3D minh họa xoay chậm"></canvas><span class="scene-tag"><i></i> IPHONE 18 PRO MAX <small>BURGUNDY · MÔ PHỎNG THIẾT KẾ</small></span><span class="scene-coordinate">01 / GALAXY SERIES</span></div>
+  </section>
+  <main id="main" class="container" tabindex="-1"><div id="app"></div><noscript><div class="panel">Bật JavaScript để dùng bản demo tương tác. Bạn vẫn có thể xem mã nguồn và hướng dẫn tại <a href="https://github.com/thuanhuynh18092003-beep/MobileWorldWeb">GitHub</a>.</div></noscript></main>
+  <footer class="footer container"><a class="brand" href="#home"><span class="brand-symbol">✦</span><span>mobileworld<small>TECH FOR EVERYONE</small></span></a><p>Dự án portfolio · ASP.NET Core MVC · SQL Server<br><span>Demo lưu dữ liệu trên trình duyệt của bạn.</span></p><a href="https://github.com/thuanhuynh18092003-beep/MobileWorldWeb" target="_blank" rel="noopener noreferrer">Mã nguồn GitHub ↗</a><button class="text-button" data-action="reset">Khôi phục dữ liệu mẫu</button></footer>
+  <dialog id="editor-dialog" class="editor-dialog"><div id="editor-content"></div></dialog>
+  <dialog id="device-viewer" class="device-viewer"><div class="device-viewer-head"><div><span class="eyebrow">TRẢI NGHIỆM 360°</span><h2 id="device-viewer-title">Mô phỏng điện thoại 3D</h2></div><button class="device-viewer-close icon-button" aria-label="Đóng mô hình 3D">×</button></div><div class="device-viewer-stage"><canvas id="device-viewer-canvas" aria-label="Kéo để xoay, cuộn để thu phóng"></canvas></div><div class="viewer-footer"><span>Mô hình minh họa · Kéo để xoay · Cuộn để thu phóng</span><a id="device-viewer-detail" href="#shop" class="button small">Xem sản phẩm</a></div></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="assets/demo-data.js"></script>
+  <script src="assets/demo.js"></script>
+  <script type="module" src="assets/space-scene.js"></script>
+</body>
+</html>

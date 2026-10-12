@@ -1,0 +1,25 @@
+@model List<ParentCategory>
+@{ ViewData["Title"] = "Quản lý danh mục"; }
+<div class="container page-content admin-page management-page">
+    <div class="page-heading"><span class="section-kicker">CẤU TRÚC SẢN PHẨM</span><h1>Danh mục sản phẩm<span class="orange-dot">.</span></h1><p>Danh mục lớn chứa các dòng máy; mỗi sản phẩm nằm trong một danh mục nhỏ.</p></div>
+    @if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+    @if (TempData["Error"] is string error) { <div class="notice error">@error</div> }
+    <div class="management-two-columns">
+        <form asp-action="AddParent" method="post" class="management-panel"><h2>Thêm danh mục lớn</h2><p>Ví dụ: iPhone, Samsung, Xiaomi</p><div class="management-fields"><label>Tên nhóm<input name="name" required maxlength="80" placeholder="iPhone" /></label><label>Đường dẫn<input name="slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="iphone" /></label><label>Thứ tự<input name="displayOrder" type="number" value="0" /></label></div><button class="btn btn-primary" type="submit">+ Thêm nhóm</button></form>
+        <form asp-action="AddChild" method="post" class="management-panel"><h2>Thêm danh mục nhỏ</h2><p>Ví dụ: iPhone 16, iPhone 17, iPhone 18</p><div class="management-fields"><label>Thuộc nhóm<select name="parentCategoryId" required>@foreach (var parent in Model) { <option value="@parent.Id">@parent.Name</option> }</select></label><label>Tên dòng máy<input name="name" required maxlength="80" placeholder="iPhone 18" /></label><label>Đường dẫn<input name="slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="iphone-18" /></label><label>Thứ tự<input name="displayOrder" type="number" value="0" /></label></div><button class="btn btn-primary" type="submit" disabled="@(Model.Count == 0)">+ Thêm dòng máy</button></form>
+    </div>
+    <div class="management-list">
+        @foreach (var parent in Model)
+        {
+            <section class="management-panel category-group"><div class="management-section-heading"><h2>@parent.Name <small>@parent.Subcategories.Count dòng máy</small></h2><form asp-action="DeleteParent" asp-route-id="@parent.Id" method="post"><button class="management-delete" type="submit" disabled="@(parent.Subcategories.Count > 0)" title="Chỉ xóa được nhóm trống">Xóa nhóm</button></form></div>
+                <form asp-action="EditParent" asp-route-id="@parent.Id" method="post" class="management-inline"><label>Tên nhóm<input name="name" value="@parent.Name" required maxlength="80" /></label><label>Đường dẫn<input name="slug" value="@parent.Slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*" /></label><label>Thứ tự<input name="displayOrder" value="@parent.DisplayOrder" type="number" /></label><button type="submit">Lưu nhóm</button></form>
+                <div class="category-children">
+                    @foreach (var child in parent.Subcategories.OrderBy(x => x.DisplayOrder).ThenBy(x => x.Name))
+                    {
+                        <div class="category-child"><div class="management-section-heading"><strong>@child.Name <small>@child.Products.Count sản phẩm</small></strong><form asp-action="DeleteChild" asp-route-id="@child.Id" method="post"><button class="management-delete" type="submit" disabled="@(child.Products.Count > 0)" title="Hãy chuyển sản phẩm trước khi xóa">Xóa</button></form></div><form asp-action="EditChild" asp-route-id="@child.Id" method="post" class="management-inline"><label>Nhóm<select name="parentCategoryId">@foreach (var option in Model) { <option value="@option.Id" selected="@(option.Id == parent.Id)">@option.Name</option> }</select></label><label>Tên dòng<input name="name" value="@child.Name" required maxlength="80" /></label><label>Đường dẫn<input name="slug" value="@child.Slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*" /></label><label>Thứ tự<input name="displayOrder" value="@child.DisplayOrder" type="number" /></label><button type="submit">Lưu</button></form></div>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+</div>

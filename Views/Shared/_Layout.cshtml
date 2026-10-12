@@ -8,20 +8,43 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0B0B0E" />
+    <script>document.documentElement.classList.add('js-loading');try{if(localStorage.getItem('burgundyGlow')==='off')document.documentElement.classList.add('glow-off')}catch{}</script>
     <title>@(ViewData["Title"] ?? "Điện thoại chính hãng") | ShopMobileWorld</title>
     <meta name="description" content="ShopMobileWorld - điện thoại chính hãng, giá tốt, giao hàng nhanh và bảo hành uy tín." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/product-images.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/cosmic.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/space-3d.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/burgundy.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/offers.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/product-variants.css" asp-append-version="true" />
+    <!script type="importmap">
+    {
+        "imports": {
+            "three": "@Url.Content("~/lib/three/three.module.js")",
+            "three/addons/": "@Url.Content("~/lib/three/addons/")"
+        }
+    }
+    </!script>
 </head>
 <body>
+    <canvas id="space-bg" aria-hidden="true"></canvas>
+    <div class="space-overlay" aria-hidden="true"></div>
+    @if (ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index")
+    {
+        <div class="cosmic-loader" role="status" aria-label="Đang tải không gian mua sắm"><span class="cosmic-loader-orb"></span><span>Đang mở không gian Burgundy</span></div>
+    }
     <div class="topbar"><div class="container topbar-inner"><span>Miễn phí vận chuyển cho đơn hàng từ 5.000.000đ</span><span>Hỗ trợ khách hàng: <strong>Liên hệ cửa hàng</strong></span></div></div>
     <header class="site-header">
         <div class="container header-main">
             <a class="brand-logo" asp-controller="Home" asp-action="Index" aria-label="ShopMobileWorld - Trang chủ"><span class="logo-mark">✦</span><span>mobile<span class="logo-light">world</span><small>TECH FOR EVERYONE</small></span></a>
             <form class="header-search" asp-controller="Products" asp-action="Index" method="get"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg><input type="search" name="search" placeholder="Bạn đang tìm điện thoại nào?" value="@Context.Request.Query["search"]" /><button type="submit">Tìm kiếm</button></form>
             <nav class="header-actions" aria-label="Tài khoản và giỏ hàng">
+                <button type="button" class="glow-toggle" data-glow-toggle aria-label="Tắt hiệu ứng sáng Burgundy" aria-pressed="true"><span aria-hidden="true">✦</span><small>Ánh sáng<br/>Burgundy</small></button>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <div class="account-menu"><a asp-controller="Account" asp-action="Orders" class="header-action"><span class="action-icon">♙</span><span><small>Xin chào,</small><strong>@User.Identity.Name</strong></span></a><div class="account-dropdown"><a asp-controller="Account" asp-action="Orders">Đơn hàng của tôi</a>@if(User.IsInRole("Admin")){<a asp-controller="Admin" asp-action="Index">Quản trị</a>}<form asp-controller="Account" asp-action="Logout" method="post"><button type="submit">Đăng xuất</button></form></div></div>
@@ -41,7 +64,16 @@
         @RenderBody()
     </main>
     <footer class="site-footer"><div class="container footer-grid"><div><a class="brand-logo footer-logo" asp-controller="Home" asp-action="Index"><span class="logo-mark">✦</span><span>mobile<span class="logo-light">world</span><small>TECH FOR EVERYONE</small></span></a><p>Điểm đến dành cho người yêu công nghệ. Chọn chiếc điện thoại phù hợp với phong cách của bạn.</p></div><div><h4>Khám phá</h4><a asp-controller="Products" asp-action="Index">Điện thoại</a><a asp-controller="Products" asp-action="Index" asp-route-brand="Apple">iPhone</a><a asp-controller="Products" asp-action="Index" asp-route-brand="Samsung">Samsung</a></div><div><h4>Hỗ trợ</h4><span>Liên hệ cửa hàng để được tư vấn</span><span>Hỗ trợ trong quá trình mua sắm</span></div><div><h4>Cam kết của chúng tôi</h4><span>✓ Hàng chính hãng</span><span>✓ Giao hàng nhanh</span><span>✓ Bảo hành minh bạch</span></div></div><div class="container footer-bottom">© @DateTime.Now.Year ShopMobileWorld. Thiết kế cho trải nghiệm mua sắm tốt hơn.</div></footer>
+    <dialog id="device-viewer" class="device-viewer" aria-labelledby="device-viewer-title">
+        <div class="device-viewer-shell">
+            <div class="device-viewer-head"><div><span class="section-kicker">TRẢI NGHIỆM 360°</span><h2 id="device-viewer-title">Mô phỏng điện thoại 3D</h2></div><button type="button" class="device-viewer-close" aria-label="Đóng cửa sổ 3D">×</button></div>
+            <div class="device-viewer-stage"><canvas id="device-viewer-canvas" aria-label="Mô hình điện thoại 3D có thể xoay và thu phóng"></canvas></div>
+            <div class="device-viewer-foot"><span>Kéo để xoay · Cuộn để phóng to hoặc thu nhỏ</span><a id="device-viewer-detail" class="btn btn-primary" href="/dien-thoai">Xem chi tiết sản phẩm ↗</a></div>
+        </div>
+    </dialog>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/burgundy-ui.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/space-scene.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

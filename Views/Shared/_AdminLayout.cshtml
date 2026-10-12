@@ -1,34 +1,58 @@
+@inject IConfiguration Configuration
+@{ var isLocalDb = Configuration.GetConnectionString("DefaultConnection")?.Contains("(localdb)", StringComparison.OrdinalIgnoreCase) == true; }
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0B0B0E" />
+    <script>try{if(localStorage.getItem('burgundyGlow')==='off')document.documentElement.classList.add('glow-off')}catch{}</script>
     <title>@(ViewData["Title"] ?? "Quản trị sản phẩm") | ShopMobileWorld Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/product-images.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/space-3d.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/burgundy.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin-management.css" asp-append-version="true" />
+    <!script type="importmap">
+    {
+        "imports": {
+            "three": "@Url.Content("~/lib/three/three.module.js")",
+            "three/addons/": "@Url.Content("~/lib/three/addons/")"
+        }
+    }
+    </!script>
 </head>
 <body class="admin-body">
+    <canvas id="space-bg" aria-hidden="true"></canvas>
+    <div class="space-overlay" aria-hidden="true"></div>
     <div class="admin-shell">
         <aside class="admin-sidebar">
             <a class="brand-logo admin-brand" asp-controller="Admin" asp-action="Index"><span class="logo-mark">✦</span><span>mobile<span class="logo-light">world</span><small>ADMIN PANEL</small></span></a>
-            <div class="admin-sidebar-label">QUẢN LÝ CỬA HÀNG</div>
+            <div class="admin-sidebar-label">TRUNG TÂM ĐIỀU KHIỂN</div>
             <nav aria-label="Menu quản trị">
                 <a asp-controller="Admin" asp-action="Index" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")"><span>▦</span> Tổng quan sản phẩm</a>
                 <a asp-controller="Admin" asp-action="Products" class="@(ViewContext.RouteData.Values["action"]?.ToString() is "Products" or "Edit" or "Create" ? "active" : "")"><span>▤</span> Sản phẩm & tồn kho</a>
                 <a asp-controller="Admin" asp-action="Orders" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Orders" ? "active" : "")"><span>▣</span> Trạng thái đơn hàng</a>
-                <a asp-controller="Admin" asp-action="Create"><span>＋</span> Thêm sản phẩm</a>
+                <a asp-controller="AdminCategories" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminCategories" ? "active" : "")"><span>◇</span> Danh mục sản phẩm</a>
+                <a asp-controller="AdminVariantOptions" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() is "AdminVariantOptions" or "AdminVariants" ? "active" : "")"><span>◈</span> Danh mục biến thể</a>
+                <a asp-controller="AdminRevenue" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminRevenue" ? "active" : "")"><span>▥</span> Báo cáo doanh thu</a>
+                <a asp-controller="AdminOffers" asp-action="Index" class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminOffers" ? "active" : "")"><span>✧</span> Ưu đãi giảm giá</a>
+                <a asp-controller="Admin" asp-action="Create" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Create" ? "active" : "")"><span>＋</span> Thêm sản phẩm</a>
             </nav>
-            <div class="admin-sidebar-note"><strong>Không gian quản trị</strong><p>Quản lý sản phẩm, tồn kho và trạng thái đơn hàng.</p></div>
+            <div class="admin-sidebar-note"><strong>Dữ liệu: @(isLocalDb ? "LocalDB Visual Studio" : "SQL Server")</strong><p>Hai cấu hình chạy dùng cơ sở dữ liệu riêng. Hãy kiểm tra cấu hình được chọn khi mở Visual Studio.</p></div>
         </aside>
         <div class="admin-workspace">
-            <header class="admin-topbar"><div><span class="admin-topbar-kicker">SHOPMOBILEWORLD</span><strong>@(ViewData["Title"] ?? "Quản trị")</strong></div><div class="admin-topbar-user"><span>Xin chào, <b>@User.Identity?.Name</b></span><form asp-controller="Account" asp-action="Logout" method="post"><button type="submit">Đăng xuất ↗</button></form></div></header>
+            <header class="admin-topbar"><div><span class="admin-topbar-kicker">SHOPMOBILEWORLD / ADMIN</span><strong>@(ViewData["Title"] ?? "Quản trị")</strong></div><div class="admin-topbar-user"><button type="button" class="glow-toggle" data-glow-toggle aria-label="Tắt hiệu ứng sáng Burgundy" aria-pressed="true"><span aria-hidden="true">✦</span><small>Ánh sáng Burgundy</small></button><span class="admin-system-status"><i></i> Đang hoạt động</span><span>Xin chào, <b>@User.Identity?.Name</b></span><form asp-controller="Account" asp-action="Logout" method="post"><button type="submit">Đăng xuất ↗</button></form></div></header>
             <main class="admin-content">@RenderBody()</main>
         </div>
     </div>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/burgundy-ui.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/space-scene.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

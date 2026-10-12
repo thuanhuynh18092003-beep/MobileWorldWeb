@@ -1,0 +1,12 @@
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.mdf
+*.ldf
+*.bak
+.env
+.env.*
+appsettings.*.local.json
+PROJECT_CONTINUATION.md

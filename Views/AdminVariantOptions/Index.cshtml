@@ -1,0 +1,51 @@
+@model VariantOptionsViewModel
+@{ ViewData["Title"] = "Danh mục biến thể"; }
+<div class="container page-content admin-page management-page">
+    <div class="page-heading"><span class="section-kicker">QUẢN TRỊ BIẾN THỂ</span><h1>Danh mục màu & dung lượng<span class="orange-dot">.</span></h1><p>Tạo giá trị dùng chung ở đây, sau đó chọn tổ hợp màu và dung lượng cho từng sản phẩm.</p></div>
+    @if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+    @if (TempData["Error"] is string error) { <div class="notice error">@error</div> }
+    <div class="management-two-columns">
+        <section class="management-panel">
+            <h2>Màu sắc</h2><p>Mã màu dùng cho nút chọn màu trên trang khách.</p>
+            <form asp-action="AddColor" method="post" class="variant-option-edit">
+                <input name="name" placeholder="Tên màu, ví dụ: Xanh" maxlength="60" required aria-label="Tên màu mới" />
+                <span class="variant-option-color" data-color-pair><input type="color" value="#8EA6C8" data-color-picker aria-label="Chọn màu mới" /><input name="hex" value="#8EA6C8" data-color-code pattern="#[0-9a-fA-F]{6}" required aria-label="Mã màu mới" /></span>
+                <input name="displayOrder" type="number" value="0" aria-label="Thứ tự màu mới" />
+                <button type="submit">+ Thêm màu</button>
+            </form>
+            @foreach (var color in Model.Colors)
+            {
+                <div class="variant-option-row">
+                    <form asp-action="EditColor" asp-route-id="@color.Id" method="post" class="variant-option-edit">
+                        <input name="name" value="@color.Name" maxlength="60" required aria-label="Tên màu @color.Name" />
+                        <span class="variant-option-color" data-color-pair><input type="color" value="@color.Hex" data-color-picker aria-label="Chọn màu @color.Name" /><input name="hex" value="@color.Hex" data-color-code pattern="#[0-9a-fA-F]{6}" required aria-label="Mã màu @color.Name" /></span>
+                        <input name="displayOrder" type="number" value="@color.DisplayOrder" aria-label="Thứ tự @color.Name" />
+                        <button type="submit">Lưu</button>
+                    </form>
+                    <form asp-action="DeleteColor" asp-route-id="@color.Id" method="post"><button class="management-delete" type="submit">Xóa</button></form>
+                </div>
+            }
+        </section>
+        <section class="management-panel">
+            <h2>Dung lượng</h2><p>Các phiên bản bộ nhớ có thể dùng cho nhiều dòng máy.</p>
+            <form asp-action="AddStorage" method="post" class="variant-option-edit variant-storage-edit">
+                <input name="name" placeholder="Ví dụ: 256GB" maxlength="30" required aria-label="Dung lượng mới" />
+                <input name="displayOrder" type="number" value="0" aria-label="Thứ tự dung lượng mới" />
+                <button type="submit">+ Thêm dung lượng</button>
+            </form>
+            @foreach (var storage in Model.Storages)
+            {
+                <div class="variant-option-row">
+                    <form asp-action="EditStorage" asp-route-id="@storage.Id" method="post" class="variant-option-edit variant-storage-edit">
+                        <input name="name" value="@storage.Name" maxlength="30" required aria-label="Dung lượng @storage.Name" />
+                        <input name="displayOrder" type="number" value="@storage.DisplayOrder" aria-label="Thứ tự @storage.Name" />
+                        <button type="submit">Lưu</button>
+                    </form>
+                    <form asp-action="DeleteStorage" asp-route-id="@storage.Id" method="post"><button class="management-delete" type="submit">Xóa</button></form>
+                </div>
+            }
+        </section>
+    </div>
+    <div class="admin-next"><div><strong>Thêm phiên bản cho sản phẩm</strong><p>Trong danh sách sản phẩm, chọn “Màu / dung lượng” để gán ảnh, giá và tồn kho cho từng tổ hợp.</p></div><a class="btn btn-outline" asp-controller="Admin" asp-action="Products">Về sản phẩm</a></div>
+</div>
+@section Scripts { <script src="~/js/admin-variant-color.js" asp-append-version="true"></script> }

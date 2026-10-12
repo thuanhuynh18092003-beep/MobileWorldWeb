@@ -20,24 +20,56 @@ public class CheckoutController(ShopDbContext db, CartService cart) : Controller
     }
 
     [HttpPost(""), ValidateAntiForgeryToken]
-    public async Task<IActionResult> Index(CheckoutViewModel model)
+    public async Task<IActionResult> Index(CheckoutViewModel model, string? command)
     {
         model.Cart = await cart.GetAsync();
         if (model.Cart.Count == 0) return RedirectToAction("Index", "Cart");
+        model.DiscountAmount = 0;
+        model.DiscountCode = model.DiscountCode?.Trim().ToUpperInvariant();
+        if (!string.IsNullOrEmpty(model.DiscountCode))
+        {
+            var offerPreview = await db.DiscountOffers.AsNoTracking().FirstOrDefaultAsync(x => x.Code == model.DiscountCode);
+            var offerError = offerPreview is null ? "Mã ưu đãi không tồn tại." : DiscountCalculator.Validate(offerPreview, model.Cart.Total, DateTime.UtcNow);
+            if (offerError is not null) ModelState.AddModelError(nameof(model.DiscountCode), offerError);
+            else model.DiscountAmount = DiscountCalculator.Calculate(offerPreview!, model.Cart.Total);
+        }
+        if (command == "preview")
+        {
+            if (string.IsNullOrWhiteSpace(model.DiscountCode)) ModelState.AddModelError(nameof(model.DiscountCode), "Vui lòng nhập mã ưu đãi.");
+            return View(model);
+        }
         if (model.PaymentMethod != "COD" && model.PaymentMethod != "BankTransfer") ModelState.AddModelError(nameof(model.PaymentMethod), "Phương thức thanh toán không hợp lệ.");
         if (!ModelState.IsValid) return View(model);
 
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
-        var ids = model.Cart.Lines.Select(x => x.Product.Id).ToList();
-        var products = await db.Products.Where(x => ids.Contains(x.Id)).ToDictionaryAsync(x => x.Id);
+        var ids = model.Cart.Lines.Select(x => x.Variant.Id).ToList();
+        var variants = await db.ProductVariants.Include(x => x.Product).Where(x => ids.Contains(x.Id)).ToDictionaryAsync(x => x.Id);
         foreach (var line in model.Cart.Lines)
         {
-            if (!products.TryGetValue(line.Product.Id, out var p) || !p.IsActive || p.Stock < line.Quantity)
+            if (!variants.TryGetValue(line.Variant.Id, out var variant) || variant.ProductId != line.Product.Id ||
+                !variant.IsActive || !variant.Product.IsActive || variant.Stock < line.Quantity)
             {
                 ModelState.AddModelError("", $"{line.Product.Name} không đủ hàng. Vui lòng cập nhật giỏ hàng.");
                 await transaction.RollbackAsync();
                 return View(model);
             }
+        }
+
+        DiscountOffer? offer = null;
+        decimal discount = 0;
+        var subtotal = model.Cart.Lines.Sum(x => variants[x.Variant.Id].Price * x.Quantity);
+        if (!string.IsNullOrEmpty(model.DiscountCode))
+        {
+            offer = await db.DiscountOffers.FromSqlInterpolated($"SELECT * FROM [dbo].[DiscountOffers] WITH (UPDLOCK, HOLDLOCK) WHERE [Code] = {model.DiscountCode}").FirstOrDefaultAsync();
+            var offerError = offer is null ? "Mã ưu đãi không tồn tại." : DiscountCalculator.Validate(offer, subtotal, DateTime.UtcNow);
+            if (offerError is not null)
+            {
+                ModelState.AddModelError(nameof(model.DiscountCode), offerError);
+                await transaction.RollbackAsync();
+                return View(model);
+            }
+            discount = DiscountCalculator.Calculate(offer!, subtotal);
+            offer!.UsedCount++;
         }
 
         var order = new Order
@@ -46,15 +78,23 @@ public class CheckoutController(ShopDbContext db, CartService cart) : Controller
             UserId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ? userId : null,
             CustomerName = model.CustomerName.Trim(), Phone = model.Phone.Trim(), Email = model.Email.Trim().ToLowerInvariant(),
             Address = model.Address.Trim(), Note = model.Note?.Trim(), PaymentMethod = model.PaymentMethod,
-            Total = model.Cart.Total
+            Subtotal = subtotal, DiscountCode = offer?.Code, DiscountAmount = discount, Total = subtotal - discount
         };
         foreach (var line in model.Cart.Lines)
         {
-            var p = products[line.Product.Id];
-            p.Stock -= line.Quantity;
-            order.Items.Add(new OrderItem { ProductId = p.Id, ProductName = p.Name, UnitPrice = p.Price, Quantity = line.Quantity });
+            var variant = variants[line.Variant.Id];
+            variant.Stock -= line.Quantity;
+            order.Items.Add(new OrderItem { ProductId = variant.ProductId, ProductVariantId = variant.Id,
+                ProductName = variant.Product.Name, VariantLabel = $"{variant.ColorName} · {variant.Storage}",
+                UnitPrice = variant.Price, Quantity = line.Quantity });
         }
-        order.Total = order.Items.Sum(x => x.UnitPrice * x.Quantity);
+        foreach (var product in variants.Values.Select(x => x.Product).DistinctBy(x => x.Id))
+        {
+            await db.Entry(product).Collection(x => x.Variants).LoadAsync();
+            ProductVariantSync.Apply(product);
+        }
+        order.Subtotal = order.Items.Sum(x => x.UnitPrice * x.Quantity);
+        order.Total = order.Subtotal - order.DiscountAmount;
         db.Orders.Add(order);
         await db.SaveChangesAsync();
         await transaction.CommitAsync();

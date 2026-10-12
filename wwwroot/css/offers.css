@@ -1,0 +1,11 @@
+.filter-panel .filter-child { padding-left: 27px; font-size: 12px; opacity: .88; }
+.filter-panel .filter-label:not(:first-of-type) { margin-top: 22px; }
+.offer-entry { margin: 18px 0; padding: 15px; border: 1px solid rgba(163, 29, 58, .3); border-radius: 12px; background: rgba(128, 0, 32, .07); }
+.offer-entry label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 800; }
+.offer-entry > div { display: flex; gap: 8px; }
+.offer-entry input { min-width: 0; flex: 1; padding: 10px 11px; color: #fff; border: 1px solid rgba(210, 159, 181, .4); border-radius: 8px; background: rgba(10, 7, 15, .65); text-transform: uppercase; }
+.offer-entry button { padding: 10px 13px; color: #fff; border: 1px solid #a31d3a; border-radius: 8px; background: #800020; font-weight: 800; white-space: nowrap; cursor: pointer; }
+.offer-entry button:hover { background: #a31d3a; }
+.offer-entry .validation { display: block; margin-top: 7px; }
+.offer-success, .offer-discount strong { color: #f19eb4; }
+.offer-success { display: block; margin-top: 8px; }

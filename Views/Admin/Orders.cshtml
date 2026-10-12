@@ -6,13 +6,17 @@
         @foreach (var order in Model)
         {
             var allowed = OrderStatus.AvailableFrom(order.Status);
+            var statusClass = order.Status == OrderStatus.Completed ? "completed"
+                : order.Status == OrderStatus.Cancelled ? "cancelled"
+                : order.Status == OrderStatus.Shipping ? "shipping"
+                : order.Status == OrderStatus.Processing ? "processing" : "new";
             <tr>
                 <td><strong>@order.Code</strong><small>@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small></td>
                 <td>@order.CustomerName<small>@order.Phone</small><small>@order.Address</small></td>
-                <td>@foreach (var item in order.Items) { <small>@item.ProductName × @item.Quantity</small> }</td>
-                <td>@order.Total.ToString("N0")₫</td>
+                <td>@foreach (var item in order.Items) { <small>@item.ProductName @item.VariantLabel × @item.Quantity</small> }</td>
+                <td><strong>@order.Total.ToString("N0")₫</strong>@if (order.DiscountAmount > 0) { <small>Ưu đãi @order.DiscountCode: −@order.DiscountAmount.ToString("N0")₫</small> }</td>
                 <td>@(order.PaymentMethod == "COD" ? "Khi nhận hàng" : "Chuyển khoản")</td>
-                <td><form asp-action="UpdateStatus" asp-route-id="@order.Id" method="post" class="status-form"><select name="status" disabled="@(allowed.Count <= 1)">@foreach (var status in allowed) { <option value="@status" selected="@(order.Status == status)">@status</option> }</select><button type="submit" disabled="@(allowed.Count <= 1)">Lưu</button></form></td>
+                <td><div class="admin-order-cell"><span class="admin-order-status @statusClass">@order.Status</span><form asp-action="UpdateStatus" asp-route-id="@order.Id" method="post" class="status-form"><select name="status" aria-label="Cập nhật trạng thái đơn @order.Code" disabled="@(allowed.Count <= 1)">@foreach (var status in allowed) { <option value="@status" selected="@(order.Status == status)">@status</option> }</select><button type="submit" disabled="@(allowed.Count <= 1)">Lưu</button></form></div></td>
             </tr>
         }
     </tbody></table></div>

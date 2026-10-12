@@ -1,5 +1,34 @@
 @model Product
-@{ var editing = Model.Id > 0; ViewData["Title"] = editing ? "Sửa sản phẩm" : "Thêm sản phẩm"; }
-<div class="container page-content admin-page"><div class="page-heading"><span class="section-kicker">QUẢN TRỊ SẢN PHẨM</span><h1>@(editing ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới")<span class="orange-dot">.</span></h1></div><form asp-action="@(editing ? "Edit" : "Create")" asp-route-id="@(editing ? Model.Id : null)" method="post" class="form-panel admin-form"><div asp-validation-summary="ModelOnly" class="validation"></div><div class="form-grid"><div class="field"><label asp-for="Name">Tên sản phẩm</label><input asp-for="Name"/><span asp-validation-for="Name" class="validation"></span></div><div class="field"><label asp-for="Slug">Đường dẫn (không dấu, có dấu gạch ngang)</label><input asp-for="Slug"/><span asp-validation-for="Slug" class="validation"></span></div><div class="field"><label asp-for="Brand">Thương hiệu</label><input asp-for="Brand"/><span asp-validation-for="Brand" class="validation"></span></div><div class="field"><label asp-for="Category">Danh mục</label><input asp-for="Category"/></div><div class="field"><label asp-for="Price">Giá bán (VNĐ)</label><input asp-for="Price" type="number" min="0"/><span asp-validation-for="Price" class="validation"></span></div><div class="field"><label asp-for="OldPrice">Giá cũ (VNĐ)</label><input asp-for="OldPrice" type="number" min="0"/></div><div class="field"><label asp-for="Stock">Tồn kho</label><input asp-for="Stock" type="number" min="0"/><span asp-validation-for="Stock" class="validation"></span></div><div class="field"><label asp-for="Storage">Dung lượng</label><input asp-for="Storage"/></div><div class="field"><label asp-for="Color">Màu minh họa (mã HEX)</label><input asp-for="Color" placeholder="#d9c8b8"/></div><div class="field"><label asp-for="Screen">Màn hình</label><input asp-for="Screen"/></div><div class="field"><label asp-for="Camera">Camera</label><input asp-for="Camera"/></div><div class="field"><label asp-for="Battery">Pin</label><input asp-for="Battery"/></div><div class="field"><label asp-for="Chip">Vi xử lý</label><input asp-for="Chip"/></div><div class="field field-wide"><label asp-for="ShortDescription">Mô tả ngắn</label><input asp-for="ShortDescription"/></div><div class="field field-wide"><label asp-for="Description">Mô tả chi tiết</label><textarea asp-for="Description" rows="4"></textarea></div><div class="field field-wide checkbox-row"><label><input asp-for="IsFeatured"/> Sản phẩm nổi bật</label><label><input asp-for="IsActive"/> Đang bán</label></div></div><div class="form-actions"><button class="btn btn-primary" type="submit">Lưu sản phẩm</button><a class="btn btn-outline" asp-action="Products">Quay lại</a></div></form></div>
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
-
+@{
+    var editing = Model.Id > 0;
+    var categories = (List<ParentCategory>)ViewBag.Categories;
+    var selectedParentId = Context.Request.HasFormContentType && int.TryParse(Context.Request.Form["parentCategoryId"], out var postedParentId)
+        ? postedParentId : categories.FirstOrDefault(x => x.Subcategories.Any(c => c.Id == Model.SubcategoryId))?.Id ?? 0;
+    ViewData["Title"] = editing ? "Sửa sản phẩm" : "Thêm sản phẩm";
+}
+<div class="container page-content admin-page">
+    <div class="page-heading">
+        <span class="section-kicker">QUẢN TRỊ SẢN PHẨM</span>
+        <h1>@(editing ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới")<span class="orange-dot">.</span></h1>
+        <p>@(editing ? "Thông tin chung của dòng máy. Ảnh, giá và tồn kho nằm trong phần phiên bản." : "Bước 1: nhập thông tin chung. Sau khi lưu, thêm màu và dung lượng ở bước 2.")</p>
+    </div>
+    @if (editing) { <p><a class="btn btn-outline" asp-controller="AdminVariants" asp-action="Index" asp-route-productId="@Model.Id">Quản lý các phiên bản ↗</a></p> }
+    <form asp-action="@(editing ? "Edit" : "Create")" asp-route-id="@(editing ? Model.Id : null)" method="post" class="form-panel admin-form">
+        <div asp-validation-summary="All" class="validation"></div>
+        <div class="form-grid">
+            <div class="field"><label asp-for="Name">Tên sản phẩm</label><input asp-for="Name" data-auto-slug="@(editing ? "false" : "true")"/><span asp-validation-for="Name" class="validation"></span></div>
+            <div class="field"><label asp-for="Slug">Đường dẫn (không dấu, có dấu gạch ngang)</label><input asp-for="Slug"/><small>Phải khác đường dẫn của sản phẩm đã có. Tên sản phẩm mới sẽ tự gợi ý đường dẫn.</small><span asp-validation-for="Slug" class="validation"></span></div>
+            <div class="field"><label for="parentCategoryId">Danh mục lớn *</label><select id="parentCategoryId" name="parentCategoryId" required><option value="">Chọn nhóm sản phẩm</option>@foreach (var category in categories) { <option value="@category.Id" selected="@(category.Id == selectedParentId)">@category.Name</option> }</select></div>
+            <div class="field"><label asp-for="SubcategoryId">Danh mục nhỏ *</label><select asp-for="SubcategoryId" id="SubcategoryId" required><option value="">Chọn dòng máy</option>@foreach (var category in categories) { foreach (var child in category.Subcategories.OrderBy(x => x.DisplayOrder).ThenBy(x => x.Name)) { <option value="@child.Id" data-parent="@category.Id" selected="@(child.Id == Model.SubcategoryId)">@category.Name / @child.Name</option> } }</select><span asp-validation-for="SubcategoryId" class="validation"></span><small>Chưa có dòng máy? <a asp-controller="AdminCategories" asp-action="Index">Quản lý danh mục</a></small></div>
+            <div class="field"><label asp-for="Screen">Màn hình</label><input asp-for="Screen"/></div>
+            <div class="field"><label asp-for="Camera">Camera</label><input asp-for="Camera"/></div>
+            <div class="field"><label asp-for="Battery">Pin</label><input asp-for="Battery"/></div>
+            <div class="field"><label asp-for="Chip">Vi xử lý</label><input asp-for="Chip"/></div>
+            <div class="field field-wide"><label asp-for="ShortDescription">Mô tả ngắn</label><input asp-for="ShortDescription"/></div>
+            <div class="field field-wide"><label asp-for="Description">Mô tả chi tiết</label><textarea asp-for="Description" rows="4"></textarea></div>
+            <div class="field field-wide checkbox-row"><label><input asp-for="IsFeatured"/> Sản phẩm nổi bật</label>@if (editing) { <label><input asp-for="IsActive"/> Hiển thị sản phẩm</label> }</div>
+        </div>
+        <div class="form-actions"><button class="btn btn-primary" type="submit">@(editing ? "Lưu thông tin" : "Lưu và thêm phiên bản →")</button><a class="btn btn-outline" asp-action="Products">Quay lại</a></div>
+    </form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/admin-categories.js" asp-append-version="true"></script> }

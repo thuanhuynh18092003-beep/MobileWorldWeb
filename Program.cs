@@ -13,12 +13,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options => { options.LoginPath = "/tai-khoan/dang-nhap"; options.AccessDeniedPath = "/"; options.ExpireTimeSpan = TimeSpan.FromDays(7); });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CartService>();
+builder.Services.AddScoped<ProductImageStorage>();
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ShopDbContext>();
     await db.Database.EnsureCreatedAsync();
+    await SchemaUpgrade.ApplyAsync(db);
     await SeedData.InitializeAsync(db, app.Configuration);
 }
 

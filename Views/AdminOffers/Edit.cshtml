@@ -1,0 +1,18 @@
+@model DiscountOffer
+@{ var editing = Model.Id > 0; ViewData["Title"] = editing ? "Sửa ưu đãi" : "Tạo ưu đãi"; }
+<div class="container page-content admin-page management-page"><div class="page-heading"><span class="section-kicker">KHUYẾN MÃI</span><h1>@(editing ? "Chỉnh sửa ưu đãi" : "Tạo mã giảm giá")<span class="orange-dot">.</span></h1></div>
+    <form asp-action="@(editing ? "Edit" : "Create")" asp-route-id="@(editing ? Model.Id : null)" method="post" class="form-panel admin-form"><div asp-validation-summary="ModelOnly" class="validation"></div><div class="form-grid">
+        <div class="field"><label asp-for="Code">Mã ưu đãi *</label><input asp-for="Code" placeholder="BURGUNDY10" maxlength="30" required /><span asp-validation-for="Code" class="validation"></span></div>
+        <div class="field"><label asp-for="Name">Tên chương trình *</label><input asp-for="Name" placeholder="Giảm giá cuối tuần" maxlength="120" required /><span asp-validation-for="Name" class="validation"></span></div>
+        <div class="field"><label asp-for="Type">Loại giảm</label><select asp-for="Type"><option value="Percent">Theo phần trăm (%)</option><option value="Fixed">Theo số tiền (₫)</option></select></div>
+        <div class="field"><label asp-for="Value">Mức giảm *</label><input asp-for="Value" type="number" min="1" step="1" required /><span asp-validation-for="Value" class="validation"></span></div>
+        <div class="field"><label asp-for="MinimumOrder">Giá trị đơn tối thiểu (₫)</label><input asp-for="MinimumOrder" type="number" min="0" step="1" /><span asp-validation-for="MinimumOrder" class="validation"></span></div>
+        <div class="field"><label asp-for="MaximumDiscount">Giảm tối đa (₫, để trống nếu không giới hạn)</label><input asp-for="MaximumDiscount" type="number" min="1" step="1" /><span asp-validation-for="MaximumDiscount" class="validation"></span></div>
+        <div class="field"><label for="StartsAt">Bắt đầu *</label><input id="StartsAt" name="StartsAt" type="datetime-local" value="@Model.StartsAt.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")" required /><span asp-validation-for="StartsAt" class="validation"></span></div>
+        <div class="field"><label for="EndsAt">Kết thúc *</label><input id="EndsAt" name="EndsAt" type="datetime-local" value="@Model.EndsAt.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")" required /><span asp-validation-for="EndsAt" class="validation"></span></div>
+        <div class="field"><label asp-for="UsageLimit">Giới hạn lượt sử dụng (để trống nếu không giới hạn)</label><input asp-for="UsageLimit" type="number" min="1" /><span asp-validation-for="UsageLimit" class="validation"></span></div>
+        @if (editing) { <div class="field"><label>Đã sử dụng</label><input value="@Model.UsedCount" disabled /></div> }
+        <div class="field field-wide checkbox-row"><label><input asp-for="IsActive" /> Kích hoạt ưu đãi</label></div>
+    </div><div class="form-actions"><button class="btn btn-primary" type="submit">Lưu ưu đãi</button><a class="btn btn-outline" asp-action="Index">Quay lại</a></div></form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

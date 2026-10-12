@@ -1,17 +1,19 @@
 @model List<Product>
 @{ ViewData["Title"] = "Sản phẩm và tồn kho"; }
 <div class="container page-content admin-page">
-    <div class="section-heading"><div><span class="section-kicker">QUẢN TRỊ CỬA HÀNG</span><h1>Sản phẩm & tồn kho<span class="orange-dot">.</span></h1><p>Cập nhật số lượng và trạng thái bán của từng sản phẩm.</p></div><a class="btn btn-primary" asp-action="Create">+ Thêm sản phẩm</a></div>
-    <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Sản phẩm</th><th>Thương hiệu</th><th>Giá</th><th>Tồn kho</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+    <div class="section-heading"><div><span class="section-kicker">QUẢN TRỊ CỬA HÀNG</span><h1>Sản phẩm & tồn kho<span class="orange-dot">.</span></h1><p>Chọn “Màu / dung lượng” để cập nhật giá, ảnh và tồn kho của từng phiên bản.</p></div><a class="btn btn-primary" asp-action="Create">+ Thêm sản phẩm</a></div>
+    @if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+    @if (TempData["Error"] is string error) { <div class="notice error">@error</div> }
+    <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Sản phẩm</th><th>Phân loại</th><th>Giá</th><th>Tồn kho</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
         @foreach (var product in Model)
         {
             <tr>
-                <td><strong>@product.Name</strong><small>@product.Storage</small></td>
-                <td>@product.Brand</td>
+                <td><div class="admin-product-cell">@if (!string.IsNullOrWhiteSpace(product.ImageUrl)) { <img src="@product.ImageUrl" alt="" loading="lazy"/> } else { <span class="admin-image-empty">Chưa có ảnh</span> }<span><strong>@product.Name</strong><span class="admin-variant-list">@foreach (var variant in product.Variants.OrderByDescending(x => x.IsDefault).ThenBy(x => x.ColorName)) { <a asp-controller="AdminVariants" asp-action="Edit" asp-route-productId="@product.Id" asp-route-id="@variant.Id" class="admin-variant-chip" title="Sửa @variant.ColorName @variant.Storage"><i style="background:@variant.ColorHex"></i>@variant.ColorName · @variant.Storage@if (variant.Stock == 0) { <em>Hết hàng</em> }</a> }</span></span></div></td>
+                <td>@(product.Subcategory is null ? "Chưa phân loại" : $"{product.Subcategory.ParentCategory.Name} / {product.Subcategory.Name}")</td>
                 <td>@product.Price.ToString("N0")₫</td>
-                <td><form asp-action="UpdateStock" asp-route-id="@product.Id" method="post" class="admin-stock-form"><input type="number" name="stock" value="@product.Stock" min="0" max="100000" aria-label="Tồn kho @product.Name" /><button type="submit">Lưu</button></form></td>
+                <td>@product.Stock <small>Tổng các phiên bản</small></td>
                 <td><span class="product-state @(product.IsActive ? product.Stock == 0 ? "sold-out" : "" : "hidden")">@(product.IsActive ? product.Stock == 0 ? "Hết hàng" : "Đang bán" : "Đã ẩn")</span></td>
-                <td><div class="table-actions"><a asp-action="Edit" asp-route-id="@product.Id">Sửa</a><form asp-action="Toggle" asp-route-id="@product.Id" method="post"><button type="submit">@(product.IsActive ? "Ẩn" : "Hiện")</button></form></div></td>
+                <td><div class="table-actions"><a asp-action="Edit" asp-route-id="@product.Id">Sửa</a><a asp-controller="AdminVariants" asp-action="Index" asp-route-productId="@product.Id">Màu / dung lượng</a><form asp-action="Toggle" asp-route-id="@product.Id" method="post"><button type="submit">@(product.IsActive ? "Ẩn" : "Hiện")</button></form></div></td>
             </tr>
         }
     </tbody></table></div>

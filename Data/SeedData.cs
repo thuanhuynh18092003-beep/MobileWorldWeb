@@ -27,6 +27,10 @@ public static class SeedData
             await db.SaveChangesAsync();
         }
 
+        await SeedCategoriesAsync(db);
+        await SeedVariantsAsync(db);
+        await SeedVariantOptionsAsync(db);
+
         var email = configuration["ADMIN_EMAIL"]?.Trim().ToLowerInvariant();
         var password = configuration["ADMIN_PASSWORD"];
         if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password) && !await db.Users.AnyAsync(x => x.Email == email))
@@ -36,6 +40,133 @@ public static class SeedData
             db.Users.Add(admin);
             await db.SaveChangesAsync();
         }
+    }
+
+    private static async Task SeedVariantsAsync(ShopDbContext db)
+    {
+        // Only migrate products created by the old schema. A newly created product has
+        // no price until its first variant is entered in Admin.
+        var products = await db.Products.Where(x => !x.Variants.Any() && x.Price > 0).ToListAsync();
+        foreach (var product in products)
+        {
+            product.Variants.Add(new ProductVariant
+            {
+                ColorName = "Màu tiêu chuẩn", ColorHex = System.Text.RegularExpressions.Regex.IsMatch(product.Color, "^#[0-9a-fA-F]{6}$") ? product.Color : "#ddd6c8",
+                Storage = string.IsNullOrWhiteSpace(product.Storage) ? "128GB" : product.Storage,
+                Price = product.Price, OldPrice = product.OldPrice, Stock = product.Stock,
+                ImageUrl = product.ImageUrl, IsDefault = true
+            });
+        }
+        if (products.Count > 0) await db.SaveChangesAsync();
+    }
+
+    private static async Task SeedVariantOptionsAsync(ShopDbContext db)
+    {
+        var variants = await db.ProductVariants.Include(x => x.Product).ToListAsync();
+        var colors = await db.VariantColors.ToListAsync();
+        var storages = await db.VariantStorages.ToListAsync();
+
+        // Legacy sample products only stored a generic color label while each had a
+        // different color value. Give them separate catalog entries so editing one
+        // sample color cannot silently recolor every other product.
+        foreach (var variant in variants.Where(x => x.ColorName == "Màu tiêu chuẩn"))
+        {
+            var prefix = "Màu tiêu chuẩn · ";
+            var suffix = $" #{variant.ProductId}";
+            var maxProductName = 60 - prefix.Length - suffix.Length;
+            variant.ColorName = prefix + variant.Product.Name[..Math.Min(variant.Product.Name.Length, maxProductName)] + suffix;
+            variant.VariantColorId = null;
+        }
+
+        foreach (var variant in variants)
+        {
+            if (!colors.Any(x => x.Name.Equals(variant.ColorName, StringComparison.OrdinalIgnoreCase)))
+            {
+                var color = new VariantColor { Name = variant.ColorName, Hex = variant.ColorHex,
+                    DisplayOrder = colors.Count };
+                db.VariantColors.Add(color);
+                colors.Add(color);
+            }
+            if (!storages.Any(x => x.Name.Equals(variant.Storage, StringComparison.OrdinalIgnoreCase)))
+            {
+                var storage = new VariantStorage { Name = variant.Storage, DisplayOrder = storages.Count };
+                db.VariantStorages.Add(storage);
+                storages.Add(storage);
+            }
+        }
+        await db.SaveChangesAsync();
+
+        foreach (var variant in variants)
+        {
+            variant.VariantColorId ??= colors.First(x => x.Name.Equals(variant.ColorName, StringComparison.OrdinalIgnoreCase)).Id;
+            variant.VariantStorageId ??= storages.First(x => x.Name.Equals(variant.Storage, StringComparison.OrdinalIgnoreCase)).Id;
+        }
+        await db.SaveChangesAsync();
+
+        var unusedGenericColors = await db.VariantColors
+            .Where(x => x.Name == "Màu tiêu chuẩn" && !x.Variants.Any()).ToListAsync();
+        if (unusedGenericColors.Count > 0)
+        {
+            db.VariantColors.RemoveRange(unusedGenericColors);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    private static async Task SeedCategoriesAsync(ShopDbContext db)
+    {
+        var definitions = new (string Parent, string Slug, string[] Children)[]
+        {
+            ("iPhone", "iphone", ["iPhone 15", "iPhone 16", "iPhone 17", "iPhone 18"]),
+            ("Samsung", "samsung", ["Galaxy S", "Galaxy Z", "Galaxy A"]),
+            ("Xiaomi", "xiaomi", ["Xiaomi", "Redmi"]),
+            ("OPPO", "oppo", ["Find", "Reno"]),
+            ("Google", "google", ["Pixel"]),
+            ("vivo", "vivo", ["V series"])
+        };
+        if (!await db.ParentCategories.AnyAsync()) foreach (var (name, slug, children) in definitions)
+        {
+            var parent = await db.ParentCategories.Include(x => x.Subcategories).FirstOrDefaultAsync(x => x.Slug == slug);
+            if (parent is null)
+            {
+                parent = new ParentCategory { Name = name, Slug = slug, DisplayOrder = Array.FindIndex(definitions, x => x.Slug == slug) };
+                db.ParentCategories.Add(parent);
+            }
+            foreach (var childName in children)
+            {
+                var childSlug = childName.ToLowerInvariant().Replace(' ', '-');
+                if (!parent.Subcategories.Any(x => x.Slug == childSlug))
+                    parent.Subcategories.Add(new Subcategory { Name = childName, Slug = childSlug, DisplayOrder = Array.IndexOf(children, childName) });
+            }
+        }
+        await db.SaveChangesAsync();
+
+        var parents = await db.ParentCategories.Include(x => x.Subcategories).ToListAsync();
+        var products = await db.Products.Where(x => x.SubcategoryId == null).ToListAsync();
+        foreach (var product in products)
+        {
+            var parent = parents.FirstOrDefault(x => x.Slug == (product.Brand.Equals("Apple", StringComparison.OrdinalIgnoreCase) ? "iphone" : product.Brand.ToLowerInvariant()) || x.Name.Equals(product.Brand, StringComparison.OrdinalIgnoreCase));
+            if (parent is null)
+            {
+                parent = new ParentCategory { Name = product.Brand, Slug = $"brand-{product.Id}" };
+                parent.Subcategories.Add(new Subcategory { Name = "Khác", Slug = "khac" });
+                db.ParentCategories.Add(parent);
+                parents.Add(parent);
+            }
+            var child = parent.Subcategories
+                .Where(x => product.Name.Contains(x.Name, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(x => x.Name.Length).FirstOrDefault();
+            if (parent.Slug == "xiaomi" && product.Name.Contains("Redmi", StringComparison.OrdinalIgnoreCase))
+                child = parent.Subcategories.FirstOrDefault(x => x.Slug == "redmi") ?? child;
+            if (child is null && parent.Slug == "vivo" && product.Name.StartsWith("vivo V", StringComparison.OrdinalIgnoreCase))
+                child = parent.Subcategories.FirstOrDefault(x => x.Slug == "v-series");
+            if (child is null)
+            {
+                child = parent.Subcategories.FirstOrDefault(x => x.Slug == "khac");
+                if (child is null) { child = new Subcategory { Name = "Khác", Slug = "khac" }; parent.Subcategories.Add(child); }
+            }
+            product.Subcategory = child;
+        }
+        await db.SaveChangesAsync();
     }
 
     private static Product Phone(string name, string slug, string brand, decimal price, decimal? oldPrice, int stock, string color, string storage, string shortDescription, string screen, string camera, string battery, string chip, bool featured) => new()

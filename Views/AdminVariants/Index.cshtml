@@ -1,0 +1,14 @@
+@model Product
+@{ ViewData["Title"] = "Màu sắc và phiên bản"; }
+<div class="container page-content admin-page management-page">
+    <div class="section-heading"><div><span class="section-kicker">QUẢN TRỊ BIẾN THỂ</span><h1>@Model.Name<span class="orange-dot">.</span></h1><p>Quản lý ảnh, màu sắc, dung lượng, giá và tồn kho riêng cho từng phiên bản.</p></div><div class="form-actions"><a class="btn btn-outline" asp-controller="AdminVariantOptions" asp-action="Index">Danh mục biến thể</a><a class="btn btn-primary" asp-action="Create" asp-route-productId="@Model.Id">+ Thêm phiên bản</a></div></div>
+    @if (TempData["Success"] is string success) { <div class="notice success">@success</div> }
+    @if (TempData["Error"] is string error) { <div class="notice error">@error</div> }
+    <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Phiên bản</th><th>Ảnh</th><th>Giá bán</th><th>Tồn kho</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+        @foreach (var variant in Model.Variants.OrderByDescending(x => x.IsDefault).ThenBy(x => x.Storage).ThenBy(x => x.ColorName))
+        {
+            <tr><td><strong><span class="variant-table-swatch" style="background:@variant.ColorHex"></span>@variant.ColorName · @variant.Storage</strong>@if (variant.IsDefault) { <small>Mặc định</small> }</td><td>@if (!string.IsNullOrEmpty(variant.ImageUrl)) { <img class="variant-table-image" src="@variant.ImageUrl" alt="@variant.ColorName" /> } else { <small>Chưa có ảnh</small> }</td><td><strong>@variant.Price.ToString("N0")₫</strong>@if (variant.OldPrice is decimal oldPrice) { <small>Giá cũ @oldPrice.ToString("N0")₫</small> }</td><td>@variant.Stock</td><td><span class="product-state @(variant.IsActive ? variant.Stock == 0 ? "sold-out" : "" : "hidden")">@(variant.IsActive ? variant.Stock == 0 ? "Hết hàng" : "Đang bán" : "Đã ẩn")</span></td><td><div class="table-actions"><a asp-action="Edit" asp-route-productId="@Model.Id" asp-route-id="@variant.Id">Sửa</a><form asp-action="Toggle" asp-route-productId="@Model.Id" asp-route-id="@variant.Id" method="post"><button type="submit">@(variant.IsActive ? "Ẩn" : "Hiện")</button></form><form asp-action="Delete" asp-route-productId="@Model.Id" asp-route-id="@variant.Id" method="post"><button type="submit" disabled="@(Model.Variants.Count == 1)">Xóa</button></form></div></td></tr>
+        }
+    </tbody></table></div>
+    <div class="admin-next"><div><strong>Gợi ý quản lý</strong><p>Mỗi tổ hợp màu và dung lượng là một phiên bản riêng. Nếu phiên bản đã có đơn hàng, hãy ẩn thay vì xóa để giữ lịch sử.</p></div><a class="btn btn-outline" asp-controller="Admin" asp-action="Products">Về danh sách sản phẩm</a></div>
+</div>
