@@ -105,11 +105,3 @@ dotnet run --launch-profile http
 ```
 
 Không lưu mật khẩu quản trị trong `appsettings.json` hoặc mã nguồn. Nếu cơ sở dữ liệu đã được tạo, ứng dụng vẫn tạo tài khoản quản trị mới khi có hai biến môi trường và email đó chưa tồn tại.
-
-## Lưu ý trước khi đưa vào kinh doanh
-
-Dữ liệu và giá điện thoại là mẫu. Sản phẩm cũ được chuyển thành một phiên bản mặc định, giữ nguyên giá và tồn kho; các màu mẫu chưa có tên cụ thể được đưa thành từng giá trị riêng trong danh mục để không vô tình đổi màu của nhiều sản phẩm cùng lúc. Ảnh JPG/PNG/WebP tối đa 5 MB được lưu trong `wwwroot/uploads/products` và hiện trên thẻ sản phẩm ở trang chủ/danh mục, trang chi tiết và giỏ hàng. Hero đầu trang dùng mô hình 3D dựng bằng mã hoặc hình minh họa CSS khi không có WebGL. Nếu chưa tải ảnh sản phẩm, giao diện sẽ báo “Chưa có ảnh sản phẩm”. Cần cập nhật sản phẩm, thông tin liên hệ, chính sách giao hàng/bảo hành thực tế. Chuyển khoản hiện là quy trình xác nhận thủ công; chưa tích hợp cổng thanh toán, email tự động hoặc đơn vị vận chuyển. Giỏ hàng dùng session lưu trên máy chủ; khi triển khai nhiều máy chủ, cần thay bằng kho session dùng chung. Lược đồ được tạo bằng `EnsureCreated`; khi chạy, ứng dụng tự bổ sung các bảng/cột danh mục, ưu đãi, doanh thu và phiên bản vào database cũ. Với những thay đổi model sau này, nên chuyển sang EF Core migrations để quản lý lược đồ dài hạn.
-
-Mô hình 3D là hình minh họa chung, có đổi màu theo sản phẩm; ảnh do Admin tải lên vẫn là ảnh sản phẩm thực tế. Trình duyệt không hỗ trợ WebGL sẽ dùng hình tĩnh sẵn có và các liên kết xem chi tiết vẫn hoạt động.
-
-Mô hình iPhone 18 Pro Max Burgundy tại đầu trang được dựng bằng mã dựa trên [thiết kế Apple công bố](https://www.apple.com/newsroom/2026/09/apple-debuts-iphone-18-pro-and-iphone-18-pro-max/). Đây là mô phỏng trực quan, không phải tệp 3D hay ảnh chính thức từ Apple và không tự tạo sản phẩm hoặc giá bán trong SQL Server. Nút **Mua ngay** dẫn đến danh mục iPhone thực tế đang có trong cửa hàng.
