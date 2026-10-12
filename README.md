@@ -45,7 +45,3 @@ dotnet run --launch-profile http
 ```
 
 Không lưu mật khẩu quản trị trong `appsettings.json` hoặc mã nguồn. Nếu cơ sở dữ liệu đã được tạo, ứng dụng vẫn tạo tài khoản quản trị mới khi có hai biến môi trường và email đó chưa tồn tại.
-
-## Lưu ý trước khi đưa vào kinh doanh
-
-Dữ liệu, giá và hình điện thoại dạng minh họa CSS là mẫu. Cần cập nhật sản phẩm, thông tin liên hệ, chính sách giao hàng/bảo hành thực tế. Chuyển khoản hiện là quy trình xác nhận thủ công; chưa tích hợp cổng thanh toán, email tự động hoặc đơn vị vận chuyển. Giỏ hàng dùng session lưu trên máy chủ; khi triển khai nhiều máy chủ, cần thay bằng kho session dùng chung. Lược đồ được tạo bằng `EnsureCreated`; nếu thay đổi model sau khi đã có dữ liệu, hãy bổ sung EF Core migrations để nâng cấp cơ sở dữ liệu an toàn.
