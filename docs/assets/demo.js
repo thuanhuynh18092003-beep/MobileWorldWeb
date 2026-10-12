@@ -59,5 +59,6 @@
  save();$('#editor-dialog').close();render();}catch(e){const error=form.querySelector('.error-message');if(error)error.textContent=e.message;else toast(e.message);}});
  $('#glow-toggle').addEventListener('click',()=>{const on=$('#glow-toggle').getAttribute('aria-pressed')!=='true';$('#glow-toggle').setAttribute('aria-pressed',String(on));$('#glow-toggle').setAttribute('aria-label',on?'Tắt ánh sáng Burgundy':'Bật ánh sáng Burgundy');document.body.classList.toggle('glow-off',!on);});
  $('.skip-link').addEventListener('click',event=>{event.preventDefault();$('#main').focus();$('#main').scrollIntoView();});
+ $('#device-viewer-detail').addEventListener('click',()=>$('#device-viewer').close());
  window.addEventListener('hashchange',()=>{$('#editor-dialog').close();$('#device-viewer').close();render();window.scrollTo(0,0);});render();
 })();
